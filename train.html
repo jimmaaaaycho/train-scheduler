@@ -5,6 +5,9 @@
     <title>Train Schedule</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- You should generally place all of your script tags at the bottom of your html body -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
@@ -77,11 +80,19 @@
       </div>
     </div>
     
+    <!--
+      Continuing from my comment above - this is where you should place your script tags,
+      but it'd be good to remove the above ones since you don't wanna redundantly load your dependencies 😬
+    -->
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.4.0/firebase.js"></script>
     <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
   <script>
 
+    // While it doesn't make a functional difference, it's a good practice to put your JS code in a separate file
+    // and then load that file in just like you're doing with the above JS libraries.
+    // Also, you should try to get in the habit of wrapping your JS code within a document.ready block or 
+    // some other kind of functional closure so that you don't pollute the global scope with your variables.
     
 var config = {
     apiKey: "AIzaSyAELvboT3qm6w6_4TUn12qUj01y1OhnePU",
@@ -94,6 +105,8 @@ var config = {
   firebase.initializeApp(config);
     var dataRef = firebase.database();
 
+    // Most of these variables are really only being used in your click handler function
+    // below so I'd declare them there instead of on the outermost scope.
     var trainname = "";
     var destination = "";
     var firstTrain = 0;
@@ -101,6 +114,9 @@ var config = {
     var nextarrival = "";
 
 
+    // This logic looks sound, but you really want to run it for each train object
+    // in your firebase database. So a better place for it would be in the callback
+    // function for `dataRef.ref().on("child_added", ...`
     var tFrequency = 3;
 
     var firstTimeConverted = moment(firstTrain, "hh:mm").subtract(1, "years");
@@ -133,6 +149,10 @@ var config = {
         frequency: frequency,
         dateAdded: firebase.database.ServerValue.TIMESTAMP
       });
+
+      // Nice job clearing out the input fields after a user submits! You don't need to
+      // do a variable assignment though since you end up reassigning the variable values
+      // before you use them again anyways.
       trainname = $("#train-name-input").val("");
       destination = $("#destination-input").val("");
       firstTrain = $("#first-train-input").val("");
@@ -141,6 +161,9 @@ var config = {
 
     dataRef.ref().on("child_added", function(childSnapshot) {
 
+      // `tMinutesTillTrain` is only ever assigned a value once on the global scope above here.
+      // So it will always have the same value when you add a new train row which means it will
+      // appear that every train is the same amount of time away.
 
       $("#table-list").prepend("<div class='well'><span id='name'> " + childSnapshot.val().trainname +
         " </span><span id='dest'> " + childSnapshot.val().destination +
